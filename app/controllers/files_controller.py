@@ -1,11 +1,32 @@
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from werkzeug.utils import secure_filename
+
+from flask import Blueprint, request, redirect, jsonify, render_template
 from flask import current_app
 
-file_bp = Blueprint('api', __name__) 
+from werkzeug.utils import secure_filename
 
-def get_filetype(file:str):
+from utils.functions import debug_message
+
+
+file_bp = Blueprint('api', __name__,url_prefix='/api') 
+
+def secure_path(base_dir:str, user_input:str) -> bool:
+
+    if user_input == '/':
+        return True
+    
+    user_path = os.path.normpath(os.path.join(base_dir, user_input))
+    if os.path.commonprefix([user_path, base_dir]) != base_dir:
+        return False
+    
+    return True
+
+def format_directory(directory:str) -> str:
+
+    return (directory.replace('-','/')).replace('.','')
+
+def get_filetype(file:str) -> str:
+
     file_extension = file.split('.')[1]
     
     if len(file) >= 7:
@@ -24,19 +45,17 @@ def upload_file():
 
     if request.method == 'POST':
         if 'file' not in request.files:
-            # flash('Not file part') 
-            return redirect('/')
+            return jsonify({'message':'Not file part'}),400
         
         file = request.files['file']
 
         if file.filename == '':
-            # flash('No selected file')
-            return redirect('/')
+            return jsonify({'message':'No selected file'}),400
 
         if file:
             filename = secure_filename(file.filename)
             file.save(os.path.join(current_app.config['UPLOADED_FILES'],filename))
-            return '¡File uploaded successfully!'
+            return jsonify({'message':'¡File uploaded successfully!'}),200
     
     return redirect('/')
 
@@ -47,30 +66,36 @@ def delete_file(file_name):
         try:
             file_name = secure_filename(file_name)
             os.remove(os.path.join(current_app.config['UPLOADED_FILES'],file_name))
+
         except FileNotFoundError:
-            return '¡File not found!'        
+            return jsonify({'message':'¡File not found!'}),400
                 
-        return '¡File deleted successfully!'
+        return jsonify({'message':'¡File deleted successfully!'}),200
+
     
     return redirect('/')
  
 @file_bp.route('/', methods=['GET'])
-def all_files():
+@file_bp.route('/<path:url>', methods=['GET'])
+def all_files(url='/'): 
 
-    all_files = {}
-    files = os.listdir(current_app.config['UPLOADED_FILES'])
-    files.sort()
-
-    page = request.args.get('page', 1, type=int) # Obtengo la pagina (?page=1)
-    per_page = 20 # Limito la cantidad de resultados
-    total = len(files) 
-    start = (page - 1) * per_page # Obtengo 
-    end = start + per_page
-
-    files_paginated = files[start:end]
-
-    for file in files_paginated:
-        all_files[file] = get_filetype(file)
+    all_files_and_directories = {}
+    base_path = current_app.config['UPLOADED_FILES'] 
+    debug_message(f" /api/ : Arg path value '{url}'",current_app.config['DEBUG_MODE'])
     
-    return render_template('index.html',all_files=all_files, page=page, total=total, per_page=per_page)
+    url = format_directory(url)
+    if secure_path(base_path,url):
+        try:
+            final_path = base_path + url
+            all_files_and_directories['path']  = (url if url == '/' else '/' + url)
+            files = [f for f in os.listdir(final_path) if os.path.isfile(os.path.join(final_path, f))] 
+            directories = [d for d in os.listdir(final_path) if os.path.isdir(os.path.join(final_path, d))]
 
+        except FileNotFoundError:
+            all_files_and_directories['error'] = 'FileNotFoundError'
+            return jsonify(all_files_and_directories)
+    
+    all_files_and_directories['directories'] = [d for d in directories]
+    all_files_and_directories['files'] = [f for f in files]
+
+    return jsonify(all_files_and_directories)
