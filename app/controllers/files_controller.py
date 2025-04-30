@@ -5,7 +5,7 @@ from flask import current_app
 
 from werkzeug.utils import secure_filename
 
-from utils.functions import debug_message
+from app.utils.functions import debug_message
 
 
 file_bp = Blueprint('api', __name__,url_prefix='/api') 
