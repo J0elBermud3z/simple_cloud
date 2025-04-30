@@ -5,4 +5,4 @@ home_bp = Blueprint('home', __name__, url_prefix='/')
 
 @home_bp.route('/', methods=['GET'])
 def index():
-    return redirect('/all_files')
+    return render_template('index.html')
