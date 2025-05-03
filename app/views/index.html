@@ -8,53 +8,32 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     <title>main</title>
 </head>
-<nav class="navbar nav-bg-dark">
-    <div class="container-fluid justify-content-center">
-        <form class="d-flex">
-            <input class="form-control me-2 input-dracula" type="search" placeholder="Buscar..." aria-label="Search">
-            <button class="btn btn-outline-dracula text-dracula" type="submit">Buscar</button>
-        </form>
-    </div>
-</nav>
+
 
 <body class="bg-dracula text-dracula">
-    <div class="d-flex flex-wrap justify-content-start p-3 gap-3" style="width: 100%;">
-        {% for file_name, file_type in all_files.items() %}
-        <div class="card" style="width: 8rem; height: 7rem; background-color: transparent; border-color: white;">
-            <div class="text-center">
-                <img src="{{ url_for('static', filename='img/' +  file_type[0]) }}" alt="Logo" width="55" height="55"
-                    style="filter: invert();margin-top: 10px;">
-
-            </div>
-            <div class="card-body">
-                <h5 class="card-title text-dracula text-center fs-6">
-                    {{ file_type[1] if file_name|length >= 7 else file_name }}</h5>
-            </div>
+    <nav class="navbar nav-bg-dark justify-content-center mx-auto mt-5 rounded" style="width: 65%;">
+        <div class="container-fluid justify-content-center">
+            <form class="d-flex">
+                <input class="form-control me-2 input-dracula" type="search" placeholder="Buscar..." aria-label="Search">
+                <button class="btn btn-outline-dracula text-dracula" type="submit">Buscar</button>
+            </form>
         </div>
-        {% endfor %}
-    </div>
-    <nav>
-        <ul class="pagination justify-content-center">
-            {% if page > 1%}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page - 1 }}">Anterior</a>
-            </li>
-            {% endif %}
-            
-            {% for p in range(1, (total // per_page) + 2) %}
-            <li class="page-item {% if p == page %}active{% endif %}">
-                <a class="page-link" href="?page={{ p }}">{{ p }}</a>
-            </li>
-            {% endfor %}
-
-            {% if page * per_page < total %}
-            <li class="page-item">
-                <a  class="page-link" href="?page={{ page + 1 }}">Siguiente</a>
-            </li>
-            {% endif %}
-        </ul>
     </nav>
+
+    <div class="container mt-5">
+        <div id="files_body" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-4 justify-content-left">
+
+        </div>
+    </div>
+    
+
 </body>
+
+
 <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/filesManager.js') }}"></script>
+
 
 </html>
