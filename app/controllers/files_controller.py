@@ -1,14 +1,20 @@
 import os
+import threading
+
+
+import time
 
 from flask import Blueprint, request, redirect, jsonify, render_template
 from flask import current_app
+
+from app.extensions.ext import socketio,emit
 
 from werkzeug.utils import secure_filename
 
 from app.utils.functions import debug_message
 
-
 file_bp = Blueprint('api', __name__,url_prefix='/api') 
+
 
 def secure_path(base_dir:str, user_input:str) -> bool:
 
@@ -99,3 +105,26 @@ def all_files(url='/'):
     all_files_and_directories['files'] = [f for f in files]
 
     return jsonify(all_files_and_directories)
+
+def check_files_thread(app,sid):
+
+    with app.app_context():
+        base_path = current_app.config['UPLOADED_FILES']         
+        aux_new_files = len(os.listdir(base_path))
+        
+        while True:
+            time.sleep(2)
+            new_files = len(os.listdir(base_path))
+            if new_files > aux_new_files:
+                aux_new_files = new_files
+                emit("new_files",{'new files or directories'},to=sid)
+
+
+@socketio.on('connect')
+def event_new_files():
+
+    sid = request.sid
+    app = current_app._get_current_object()
+    thread = threading.Thread(target=check_files_thread, args=(app, sid))
+    thread.daemon = True
+    thread.start()
