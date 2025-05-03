@@ -1,0 +1,9 @@
+/app/__pycache__/*
+/app/controllers/__pycache__/*
+/app/modules/__pycache__/*
+/app/static/__pycache__/*
+/views/__pycache__/*
+/__pycache__/*
+*.py[cod]
+/app/testing/
+/app/uploaded_files/
