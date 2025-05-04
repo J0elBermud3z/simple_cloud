@@ -44,6 +44,15 @@ def get_filetype(file:str) -> str:
     if file_extension in current_app.config['TEXT_EXTENSIONS']:
         return ('file-text.svg',file)
     
+
+def get_total_files_and_directories(path):
+    
+    files_directories = 0
+    for raiz, directorios, archivos in os.walk(path):
+        for archivo in archivos:
+            files_directories += 1
+
+    return files_directories
     
 
 @file_bp.route('/upload', methods=['GET','POST'])
@@ -110,21 +119,24 @@ def check_files_thread(app,sid):
 
     with app.app_context():
         base_path = current_app.config['UPLOADED_FILES']         
-        aux_new_files = len(os.listdir(base_path))
+        aux_new_files = get_total_files_and_directories(base_path)
         
         while True:
             time.sleep(2)
-            new_files = len(os.listdir(base_path))
+            new_files = get_total_files_and_directories(base_path)
             if new_files > aux_new_files:
                 aux_new_files = new_files
-                emit("new_files",{'new files or directories'},to=sid)
+                socketio.emit('new_files', {'message': 'Nuevo archivo'}, to=sid)
 
 
 @socketio.on('connect')
-def event_new_files():
+def on_connect():
 
     sid = request.sid
     app = current_app._get_current_object()
     thread = threading.Thread(target=check_files_thread, args=(app, sid))
     thread.daemon = True
     thread.start()
+
+
+    
