@@ -1,20 +1,13 @@
 import os
 import threading
-
-
 import time
-
 from flask import Blueprint, request, redirect, jsonify, render_template
 from flask import current_app
-
 from app.extensions.ext import socketio,emit
-
 from werkzeug.utils import secure_filename
-
 from app.utils.functions import debug_message
 
 file_bp = Blueprint('api', __name__,url_prefix='/api') 
-
 
 def secure_path(base_dir:str, user_input:str) -> bool:
 
@@ -31,32 +24,26 @@ def format_directory(directory:str) -> str:
 
     return (directory.replace('-','/')).replace('.','')
 
-def get_filetype(file:str) -> str:
+    
+def get_total_files_and_directories(path) -> int:
+    
+    total = 0
 
-    file_extension = file.split('.')[1]
-    
-    if len(file) >= 7:
-        file = file[0:4] + '...'
+    for item in os.listdir(path): 
+        full_path = os.path.join(path, item) 
+        total += 1  
 
-    if file_extension in current_app.config['IMAGE_EXTENSIONS']:
-        return ('image.svg',file)
-    
-    if file_extension in current_app.config['TEXT_EXTENSIONS']:
-        return ('file-text.svg',file)
-    
+        if os.path.isdir(full_path): 
+            total += get_total_files_and_directories(full_path) 
 
-def get_total_files_and_directories(path):
-    
-    files_directories = 0
-    for raiz, directorios, archivos in os.walk(path):
-        for archivo in archivos:
-            files_directories += 1
+    return total
 
-    return files_directories
-    
+def have_files(path):
+
+    return (True if len(os.listdir(path)) >= 1 else False) 
 
 @file_bp.route('/upload', methods=['GET','POST'])
-def upload_file():
+def upload_file() -> dict: # Json dict or redirect
 
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -75,7 +62,7 @@ def upload_file():
     return redirect('/')
 
 @file_bp.route('/delete/<file_name>', methods=['GET','POST'])
-def delete_file(file_name):
+def delete_file(file_name) -> dict: # Json dict, redirect
 
     if request.method == 'POST':
         try:
@@ -92,7 +79,7 @@ def delete_file(file_name):
  
 @file_bp.route('/', methods=['GET'])
 @file_bp.route('/<path:url>', methods=['GET'])
-def all_files(url='/'): 
+def all_files(url='/') -> dict: # Json dict  
 
     all_files_and_directories = {}
     base_path = current_app.config['UPLOADED_FILES'] 
@@ -109,8 +96,8 @@ def all_files(url='/'):
         except FileNotFoundError:
             all_files_and_directories['error'] = 'FileNotFoundError'
             return jsonify(all_files_and_directories)
-    
-    all_files_and_directories['directories'] = [d for d in directories]
+
+    all_files_and_directories['directories'] = sorted([{d: have_files(final_path+'/'+d)} for d in directories], key=lambda x: not next(iter(x.values()))) 
     all_files_and_directories['files'] = [f for f in files]
 
     return jsonify(all_files_and_directories)
@@ -122,9 +109,9 @@ def check_files_thread(app,sid):
         aux_new_files = get_total_files_and_directories(base_path)
         
         while True:
-            time.sleep(2)
+            time.sleep(1)
             new_files = get_total_files_and_directories(base_path)
-            if new_files > aux_new_files:
+            if new_files != aux_new_files:
                 aux_new_files = new_files
                 socketio.emit('new_files', {'message': 'Nuevo archivo'}, to=sid)
 
@@ -137,6 +124,3 @@ def on_connect():
     thread = threading.Thread(target=check_files_thread, args=(app, sid))
     thread.daemon = True
     thread.start()
-
-
-    
