@@ -6,43 +6,12 @@ from flask import current_app
 from app.extensions.ext import socketio,emit
 from werkzeug.utils import secure_filename
 from app.utils.functions import debug_message
+from app.utils.filesystem import format_directory,secure_path,have_files,get_total_files_and_directories
 
 file_bp = Blueprint('api', __name__,url_prefix='/api') 
 
-def secure_path(base_dir:str, user_input:str) -> bool:
 
-    if user_input == '/':
-        return True
-    
-    user_path = os.path.normpath(os.path.join(base_dir, user_input))
-    if os.path.commonprefix([user_path, base_dir]) != base_dir:
-        return False
-    
-    return True
-
-def format_directory(directory:str) -> str:
-
-    return (directory.replace('-','/')).replace('.','')
-
-    
-def get_total_files_and_directories(path) -> int:
-    
-    total = 0
-
-    for item in os.listdir(path): 
-        full_path = os.path.join(path, item) 
-        total += 1  
-
-        if os.path.isdir(full_path): 
-            total += get_total_files_and_directories(full_path) 
-
-    return total
-
-def have_files(path):
-
-    return (True if len(os.listdir(path)) >= 1 else False) 
-
-@file_bp.route('/upload', methods=['GET','POST'])
+@file_bp.route('/upload', methods=['POST'])
 def upload_file() -> dict: # Json dict or redirect
 
     if request.method == 'POST':
@@ -61,7 +30,7 @@ def upload_file() -> dict: # Json dict or redirect
     
     return redirect('/')
 
-@file_bp.route('/delete/<file_name>', methods=['GET','POST'])
+@file_bp.route('/delete/<file_name>', methods=['POST'])
 def delete_file(file_name) -> dict: # Json dict, redirect
 
     if request.method == 'POST':
@@ -88,7 +57,7 @@ def all_files(url='/') -> dict: # Json dict
     url = format_directory(url)
     if secure_path(base_path,url):
         try:
-            final_path = base_path + url
+            final_path = os.path.join(base_path, url.strip('/'))
             all_files_and_directories['path']  = (url if url == '/' else '/' + url)
             files = [f for f in os.listdir(final_path) if os.path.isfile(os.path.join(final_path, f))] 
             directories = [d for d in os.listdir(final_path) if os.path.isdir(os.path.join(final_path, d))]
@@ -96,7 +65,9 @@ def all_files(url='/') -> dict: # Json dict
         except FileNotFoundError:
             all_files_and_directories['error'] = 'FileNotFoundError'
             return jsonify(all_files_and_directories)
-
+    else:
+        return jsonify({'error': 'Path not allowed'}), 400
+    
     all_files_and_directories['directories'] = sorted([{d: have_files(final_path+'/'+d)} for d in directories], key=lambda x: not next(iter(x.values()))) 
     all_files_and_directories['files'] = [f for f in files]
 

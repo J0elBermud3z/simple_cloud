@@ -3,7 +3,7 @@ import os
 class Config:
 
 
-    DEBUG_MODE = False
+    DEBUG_MODE = True
 
 class Paths:
 

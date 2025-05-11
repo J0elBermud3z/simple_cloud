@@ -1,12 +1,10 @@
-from flask import Flask, redirect
+from flask import Flask, redirect, request
 from .config import Paths
 from .config import Config
 from .controllers.files_controller import file_bp
 from .controllers.home_controller import home_bp
 from .controllers.error_handlers import register_error_handlers
 from .extensions.ext import socketio
-
-import os
 
     
 def create_app():
