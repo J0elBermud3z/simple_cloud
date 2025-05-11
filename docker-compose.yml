@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: flask_app
+    expose:
+      - "8000"
+
+  apache:
+    build: ./apache
+    container_name: apache_proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

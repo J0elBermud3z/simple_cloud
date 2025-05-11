@@ -1,8 +1,8 @@
 from app import create_app
-
+from app.extensions.ext import socketio
 
 app = create_app()
 
 
 if __name__ == '__main__':
-    app.run(debug=app)
+    socketio.run(app)

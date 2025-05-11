@@ -1,8 +1,9 @@
 import os 
 
 class Config:
-    
-    DEBUG = True
+
+
+    DEBUG_MODE = False
 
 class Paths:
 

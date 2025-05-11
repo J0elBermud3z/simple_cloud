@@ -1,9 +1,9 @@
-/app/__pycache__/*
-/app/controllers/__pycache__/*
-/app/modules/__pycache__/*
-/app/static/__pycache__/*
-/views/__pycache__/*
-/__pycache__/*
+backend/app/__pycache__/*
+backend/app/controllers/__pycache__/*
+backend/app/modules/__pycache__/*
+backend/app/static/__pycache__/*
+backend/views/__pycache__/*
+backend/__pycache__/*
 *.py[cod]
-/app/testing/
-/app/uploaded_files/
+backend/app/testing/
+backend/app/uploaded_files/
