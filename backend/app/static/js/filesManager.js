@@ -1,5 +1,5 @@
 
-let path = '';
+let path = '/api';
 
 function getFileIcon(fileExtension) {
 
@@ -11,6 +11,9 @@ function getFileIcon(fileExtension) {
     };
 }
 
+function removeSpaces(path) {
+    return path.replaceAll(' ', '%20');
+}
 
 function generateDirectoriesHTML(response,pathDirectory) {
 
@@ -21,9 +24,9 @@ function generateDirectoriesHTML(response,pathDirectory) {
         const folder = directories[indexDirectory];
         const folderName = Object.keys(folder)[0];
         const haveDirectories = Object.values(folder)[0];
-
+        const sanitizedPath = removeSpaces(pathDirectory+'/'+folderName);
         htmlDirectories +=             `<div class="col text-center">
-        <img onclick=refreshFiles("/api${pathDirectory}/${folderName}") src="/static/img/${ haveDirectories === true ? 'folder_with_files.png' : 'open-folder.png' }" alt="Logo" width="55" height="55"
+        <img onclick=refreshFiles("${sanitizedPath}") src="/static/img/${ haveDirectories === true ? 'folder_with_files.png' : 'open-folder.png' }" alt="Logo" width="55" height="55"
             style="margin-top: 10px;">
         <h5 class="text-dracula fs-6 mt-2">${folderName}</h5>
     </div>`;
@@ -48,10 +51,29 @@ function generateFilesHTML(response) {
     return htmlDirectories;
 }
 
-function  refreshFiles(path_api='/api') {
-   
-    if (path === ''){
-        path = path_api;
+function backDirectory(path) {
+    if (path !== '/api') {    
+        path = path.split('/');
+        path.pop(); 
+        return path.join('/');
+       
+    }
+}
+
+function refreshFiles(path_api='/api') {
+
+    let navButton = document.getElementById('back_button'); 
+    let htmlDirectories = '';
+    path = path_api; 
+
+    document.querySelector('input[type="search"]').value = path.replace('/api','');
+    
+    if (path !== '/api'){ 
+        navButton.style.visibility = 'visible';
+        navButton.onclick = () => refreshFiles(backDirectory(path));
+
+    }else{
+        navButton.style.visibility = 'hidden';
     };
 
     $.ajax({
@@ -61,9 +83,7 @@ function  refreshFiles(path_api='/api') {
         success: function (response) {
 
             let filesBody = document.getElementById('files_body');
-            let htmlDirectories = '';
-            let pathDirectory = response['path'].includes('//') === true ? response['path'].replace('//', '/') : response['path'];
-            let directories = generateDirectoriesHTML(response,pathDirectory);
+            let directories = generateDirectoriesHTML(response,path);
             let files       = generateFilesHTML(response);
             
             htmlDirectories += directories + files;
@@ -71,9 +91,6 @@ function  refreshFiles(path_api='/api') {
         }
     });
 
-    if (path_api){
-        path = path_api;
-    }
 };
 
 $(document).ready(function() {
@@ -84,7 +101,6 @@ $(document).ready(function() {
 
     socketio.on('new_files', (data) => {
         refreshFiles(path);
-        console.log("Valor de la path: " + path);
     });
     
 });

@@ -37,26 +37,34 @@ body{
 .btn-purple { color: var(--dracula-purple) !important; }
 
 .btn-outline-dracula {
+    border-style: none;
     background-color: transparent;
-    color: var(--dracula-purple);
-    border: 1px solid var(--dracula-purple);
-    transition: all 0.2s ease-in-out;
+    filter: opacity(70%);
 }
 
 .btn-outline-dracula:hover {
-    background-color: var(--dracula-purple);
+    background-color: transparent;
     color: var(--dracula-bg);
-    border-color: var(--dracula-purple);
+    border-color: transparent;
+    filter: opacity(100%);
 }
+
+.btn-outline-dracula:focus {
+    outline: none ;
+    box-shadow: none;
+}
+
 
 
 .input-dracula {
     background-color: var(--dracula-bg);
     color: var(--dracula-fg);
-    border: 1px solid var(--dracula-purple);
+    border: 1px solid var(--dracula-fg);
     padding: 0.5rem 1rem;
     border-radius: 0.375rem;
     transition: all 0.2s ease-in-out;
+    filter: opacity(70%);
+
 }
   
 .input-dracula::placeholder {
@@ -67,5 +75,15 @@ body{
     outline: none;
     border-color: var(--dracula-purple);
     box-shadow: 0 0 0 0.2rem rgba(198, 139, 253, 0.25);
+    filter: opacity(100%);
+
+}
+  
+.input-dracula:hover {
+    outline: none;
+    border-color: var(--dracula-fg);
+    box-shadow: 0 0 0 0.4px rgba(255, 255, 255, 0.918);
+    filter: opacity(100%);
+
 }
   

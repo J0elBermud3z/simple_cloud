@@ -16,9 +16,10 @@
 <body class="bg-dracula text-dracula">
     <nav class="navbar nav-bg-dark justify-content-center mx-auto mt-5 rounded" style="width: 65%;">
         <div class="container-fluid justify-content-center">
-            <form class="d-flex">
-                <input class="form-control me-2 input-dracula" type="search" placeholder="Buscar..." aria-label="Search">
-                <button class="btn btn-outline-dracula text-dracula" type="submit">Buscar</button>
+            <form id="nav-bar" class="d-flex">
+                <button type="button" id="back_button" class="btn-outline-dracula btn-sm me-3 rounded-3" style="visibility: hidden;"><img style="width: 1.9em;position: relative;right: 2px;" src="{{ url_for('static', filename='img/back_button.png') }}" alt=""></button>
+                <input class="form-control me-3 input-dracula rounded-3 w-80" type="search" placeholder="Buscar..." aria-label="Search">
+                <button class="btn-outline-dracula btn-sm text-dracula rounded-3" type="submit"><img src="{{ url_for('static', filename='img/search.png') }}" alt=""></button>
             </form>
         </div>
     </nav>
