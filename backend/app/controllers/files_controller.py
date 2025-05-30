@@ -6,7 +6,7 @@ from flask import current_app
 from app.extensions.ext import socketio,emit
 from werkzeug.utils import secure_filename
 from app.utils.functions import debug_message
-from app.utils.filesystem import format_directory,secure_path,have_files,get_total_files_and_directories
+from app.utils.filesystem import format_directory,secure_path,have_files,get_path_size,get_total_files_and_directories, get_filetype
 
 file_bp = Blueprint('api', __name__,url_prefix='/api') 
 
@@ -68,8 +68,11 @@ def all_files(url='/') -> dict: # Json dict
     else:
         return jsonify({'error': 'Path not allowed'}), 400
     
-    all_files_and_directories['directories'] = sorted([{d: {'is_empty':have_files(final_path+'/'+d)}} for d in directories], key=lambda x: x [next(iter(x))]['is_empty'],reverse=True) 
-    all_files_and_directories['files'] = [f for f in files]
+    all_files_and_directories['directories'] = sorted(
+        [{'isEmpty': have_files(final_path + '/' + d),'name': d,'size':get_path_size(final_path + '/' + d)} for d in directories],
+        key=lambda x: x['isEmpty'], reverse=True
+    ) 
+    all_files_and_directories['files'] = [{'name':f,'type':get_filetype(final_path + '/' + f),'size':get_path_size(final_path + '/' + f)} for f in files]
 
     return jsonify(all_files_and_directories)
 

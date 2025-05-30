@@ -1,4 +1,3 @@
-
 let path = '/api';
 
 function getFileIcon(fileExtension) {
@@ -22,8 +21,8 @@ function generateDirectoriesHTML(response,pathDirectory) {
     for (let indexDirectory = 0; indexDirectory < directories.length; indexDirectory++) {
 
         const folder = directories[indexDirectory];
-        const folderName = Object.keys(folder)[0];
-        const haveDirectories = Object.values(folder)[0];
+        const folderName = folder['name'];
+        const haveDirectories = folder['isEmpty'];
         const sanitizedPath = removeSpaces(pathDirectory+'/'+folderName);
         htmlDirectories +=             `<div class="col text-center">
         <img onclick=refreshFiles("${sanitizedPath}") src="/static/img/${ haveDirectories === true ? 'folder_with_files.png' : 'open-folder.png' }" alt="Logo" width="55" height="55"
@@ -42,9 +41,9 @@ function generateFilesHTML(response) {
     let files       = response['files'];
     for (let indexDirectory = 0; indexDirectory < files.length; indexDirectory++) {
         htmlDirectories +=             `<div class="col text-center">
-        <img src="${getFileIcon(files[indexDirectory].split('.').at(-1))}" alt="Logo" width="55" height="55"
+        <img src="${getFileIcon(files[indexDirectory]['name'].split('.').at(-1))}" alt="Logo" width="55" height="55"
             style="margin-top: 10px;">
-        <h5 class="text-dracula fs-6 mt-2">${files[indexDirectory]}</h5>
+        <h5 class="text-dracula fs-6 mt-2">${files[indexDirectory]['name']}</h5>
     </div>`;
         
     };

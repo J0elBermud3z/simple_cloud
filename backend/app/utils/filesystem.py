@@ -1,4 +1,6 @@
 import os
+import mimetypes
+
 
 def secure_path(base_dir:str, user_input:str) -> bool:
 
@@ -29,6 +31,26 @@ def get_total_files_and_directories(path) -> int:
 
     return total
 
-def have_files(path):
+def have_files(path) -> bool:
 
     return (True if len(os.listdir(path)) >= 1 else False) 
+
+def get_filetype(file) -> str:
+
+    mime_type, _ = mimetypes.guess_type(file)
+    return mime_type
+
+
+def get_path_size(path) -> int:
+
+    total_size = 0
+    if os.path.isfile(path):
+        return os.path.getsize(path)
+    
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if os.path.exists(fp):
+                total_size += os.path.getsize(fp)
+
+    return total_size
