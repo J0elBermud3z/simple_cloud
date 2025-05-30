@@ -11,8 +11,8 @@ from app.utils.filesystem import format_directory,secure_path,have_files,get_tot
 file_bp = Blueprint('api', __name__,url_prefix='/api') 
 
 
-@file_bp.route('/upload', methods=['POST'])
-def upload_file() -> dict: # Json dict or redirect
+@file_bp.route('/', methods=['POST'])
+def upload_file() -> dict: # Json dict, redirect
 
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -30,10 +30,10 @@ def upload_file() -> dict: # Json dict or redirect
     
     return redirect('/')
 
-@file_bp.route('/delete/<file_name>', methods=['POST'])
+@file_bp.route('/<file_name>', methods=['DELETE'])
 def delete_file(file_name) -> dict: # Json dict, redirect
 
-    if request.method == 'POST':
+    if request.method == 'DELETE':
         try:
             file_name = secure_filename(file_name)
             os.remove(os.path.join(current_app.config['UPLOADED_FILES'],file_name))
@@ -68,7 +68,7 @@ def all_files(url='/') -> dict: # Json dict
     else:
         return jsonify({'error': 'Path not allowed'}), 400
     
-    all_files_and_directories['directories'] = sorted([{d: have_files(final_path+'/'+d)} for d in directories], key=lambda x: not next(iter(x.values()))) 
+    all_files_and_directories['directories'] = sorted([{d: {'is_empty':have_files(final_path+'/'+d)}} for d in directories], key=lambda x: x [next(iter(x))]['is_empty'],reverse=True) 
     all_files_and_directories['files'] = [f for f in files]
 
     return jsonify(all_files_and_directories)
