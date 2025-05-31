@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from app.utils.functions import debug_message
 from app.utils.filesystem import format_directory,secure_path,have_files,get_path_size,get_total_files_and_directories, get_filetype
 
-file_bp = Blueprint('api', __name__,url_prefix='/api') 
+file_bp = Blueprint('api', __name__, url_prefix='/api') 
 
 
 @file_bp.route('/', methods=['POST'])
@@ -16,12 +16,12 @@ def upload_file() -> dict: # Json dict, redirect
 
     if request.method == 'POST':
         if 'file' not in request.files:
-            return jsonify({'message':'Not file part'}),400
+            return jsonify({'message':'Missing file in request'}),422
         
         file = request.files['file']
 
         if file.filename == '':
-            return jsonify({'message':'No selected file'}),400
+            return jsonify({'message':'No selected file'}),404
 
         if file:
             filename = secure_filename(file.filename)
@@ -39,7 +39,7 @@ def delete_file(file_name) -> dict: # Json dict, redirect
             os.remove(os.path.join(current_app.config['UPLOADED_FILES'],file_name))
 
         except FileNotFoundError:
-            return jsonify({'message':'¡File not found!'}),400
+            return jsonify({'message':'¡File not found!'}),404
                 
         return jsonify({'message':'¡File deleted successfully!'}),200
 
@@ -58,21 +58,20 @@ def all_files(url='/') -> dict: # Json dict
     if secure_path(base_path,url):
         try:
             final_path = os.path.join(base_path, url.strip('/'))
-            all_files_and_directories['path']  = (url if url == '/' else '/' + url)
-            files = [f for f in os.listdir(final_path) if os.path.isfile(os.path.join(final_path, f))] 
-            directories = [d for d in os.listdir(final_path) if os.path.isdir(os.path.join(final_path, d))]
+            all_files_and_directories['path']        = ('/api/'+url)
+            all_files_and_directories['files']       = [{'name':f,'type':get_filetype(final_path + '/' + f),'size':get_path_size(final_path + '/' + f)} for f in os.listdir(final_path) if os.path.isfile(os.path.join(final_path, f))] 
+            all_files_and_directories['directories'] = sorted([{'isEmpty': have_files(final_path + '/' + d), 'name':d, 'size':get_path_size(final_path + '/' + d)} for d in os.listdir(final_path) if os.path.isdir(os.path.join(final_path, d))], key= lambda x: x['isEmpty'], reverse=True)
+            all_files_and_directories['actions']     = {'label':'Delete', 'method':'DELETE', 'url':'/api/'+url}
 
         except FileNotFoundError:
+
             all_files_and_directories['error'] = 'FileNotFoundError'
             return jsonify(all_files_and_directories)
+
     else:
-        return jsonify({'error': 'Path not allowed'}), 400
+        return jsonify({'error': 'Path not allowed'}), 404
     
-    all_files_and_directories['directories'] = sorted(
-        [{'isEmpty': have_files(final_path + '/' + d),'name': d,'size':get_path_size(final_path + '/' + d)} for d in directories],
-        key=lambda x: x['isEmpty'], reverse=True
-    ) 
-    all_files_and_directories['files'] = [{'name':f,'type':get_filetype(final_path + '/' + f),'size':get_path_size(final_path + '/' + f)} for f in files]
+     
 
     return jsonify(all_files_and_directories)
 
