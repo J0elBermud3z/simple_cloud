@@ -2,14 +2,15 @@ import os
 import shutil
 import threading
 import time
-from flask import Blueprint, request, redirect, jsonify, render_template
+from flask import Blueprint, request, redirect, jsonify
 from flask import current_app
 from app.extensions.ext import socketio,emit
 from werkzeug.utils import secure_filename
 from app.utils.functions import debug_message
 from app.utils.filesystem import format_directory,secure_path,have_files,get_path_size,get_total_files_and_directories, get_filetype
 
-file_bp = Blueprint('api', __name__, url_prefix='/api') 
+file_bp = Blueprint('api', __name__, url_prefix='/api/') 
+
 
 
 @file_bp.route('/', methods=['POST'])
@@ -30,6 +31,27 @@ def upload_file() -> dict: # Json dict, redirect
             return jsonify({'message':'¡File uploaded successfully!'}),200
     
     return redirect('/')
+
+
+@file_bp.route('/<old_name>/<new_name>', methods=['PATCH'])
+@file_bp.route('/<path:folder_path>/<old_name>/<new_name>', methods=['PATCH'])
+def rename_file(old_name, new_name, folder_path=''):
+
+    base_path = current_app.config['UPLOADED_FILES']
+
+    old_path = os.path.join(base_path, folder_path, old_name)
+    new_path = os.path.join(base_path, folder_path, new_name)
+
+    if os.path.exists(old_path):
+        try:
+            os.rename(old_path, new_path)
+            return jsonify({'message': f'¡{"Directory" if os.path.isdir(new_path) else "File"} renamed successfully!'}), 200
+        except Exception as e:
+            return jsonify({'message': f'Error renaming file or directory: {str(e)}'}), 500
+    
+    else:
+        return jsonify({'message': '¡File or directory not found!'}), 404
+
 
 @file_bp.route('/<file_name>', methods=['DELETE'])
 def delete_file(file_name) -> dict: # Json dict, redirect
@@ -70,7 +92,7 @@ def all_files(url='/') -> dict: # Json dict
             all_files_and_directories['files']       = [{'name':f,'type':get_filetype(final_path + '/' + f),'size':get_path_size(final_path + '/' + f)} for f in os.listdir(final_path) if os.path.isfile(os.path.join(final_path, f))] 
             all_files_and_directories['directories'] = sorted([{'isEmpty': have_files(final_path + '/' + d), 'name':d, 'size':get_path_size(final_path + '/' + d)} for d in os.listdir(final_path) if os.path.isdir(os.path.join(final_path, d))], key= lambda x: x['isEmpty'], reverse=True)
             if url != '/': # Operations are not allowed in the root path '/'.
-                all_files_and_directories['actions']     = [{'label':'Delete', 'method':'DELETE', 'url':'/api/'+url}]
+                all_files_and_directories['actions']   = [{'label':'Delete', 'method':'DELETE', 'url':'/api/'+url}]
 
         except FileNotFoundError:
 
