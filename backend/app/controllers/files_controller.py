@@ -11,27 +11,32 @@ from app.utils.filesystem import format_directory,secure_path,have_files,get_pat
 
 file_bp = Blueprint('api', __name__, url_prefix='/api/') 
 
-
-
 @file_bp.route('/', methods=['POST'])
-def upload_file() -> dict: # Json dict, redirect
+@file_bp.route('/<path:folder_path>', methods=['POST'])
+def upload_file(folder_path='') -> dict: # Json dict, redirect
+    
+    base_path = os.path.join(current_app.config['UPLOADED_FILES'],folder_path)
 
     if request.method == 'POST':
-        if 'file' not in request.files:
-            return jsonify({'message':'Missing file in request'}),422
-        
-        file = request.files['file']
 
-        if file.filename == '':
-            return jsonify({'message':'No selected file'}),404
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                save_path = os.path.join(base_path, filename)
+                file.save(save_path)
+                return jsonify({'message': '¡File uploaded successfully!'}), 200
+            else:
+                return jsonify({'message': 'No file selected'}), 400
 
-        if file:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(current_app.config['UPLOADED_FILES'],filename))
-            return jsonify({'message':'¡File uploaded successfully!'}),200
-    
+        if folder_path:
+            if not os.path.exists(base_path):
+                os.makedirs(base_path)
+                return jsonify({'message': '¡Directory created successfully!'}), 200
+            else:
+                return jsonify({'message': 'Directory already exists'}), 409
+
     return redirect('/')
-
 
 @file_bp.route('/<old_name>/<new_name>', methods=['PATCH'])
 @file_bp.route('/<path:folder_path>/<old_name>/<new_name>', methods=['PATCH'])
@@ -92,7 +97,7 @@ def all_files(url='/') -> dict: # Json dict
             all_files_and_directories['files']       = [{'name':f,'type':get_filetype(final_path + '/' + f),'size':get_path_size(final_path + '/' + f)} for f in os.listdir(final_path) if os.path.isfile(os.path.join(final_path, f))] 
             all_files_and_directories['directories'] = sorted([{'isEmpty': have_files(final_path + '/' + d), 'name':d, 'size':get_path_size(final_path + '/' + d)} for d in os.listdir(final_path) if os.path.isdir(os.path.join(final_path, d))], key= lambda x: x['isEmpty'], reverse=True)
             if url != '/': # Operations are not allowed in the root path '/'.
-                all_files_and_directories['actions']   = [{'label':'Delete', 'method':'DELETE', 'url':'/api/'+url}]
+                all_files_and_directories['actions']   = [{'label':'Delete', 'method':'DELETE', 'url':'/api/'+url}, {'label':'Rename', 'method':'PATCH', 'url':'/api/'+url+'/old_name/new_name'}]
 
         except FileNotFoundError:
 
@@ -116,7 +121,6 @@ def check_files_thread(app,sid):
             if new_files != aux_new_files:
                 aux_new_files = new_files
                 socketio.emit('new_files', {'message': 'Nuevo archivo'}, to=sid)
-
 
 @socketio.on('connect')
 def on_connect():
