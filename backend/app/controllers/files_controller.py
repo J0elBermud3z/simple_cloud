@@ -1,4 +1,5 @@
 import os
+import shutil
 import threading
 import time
 from flask import Blueprint, request, redirect, jsonify, render_template
@@ -32,19 +33,26 @@ def upload_file() -> dict: # Json dict, redirect
 
 @file_bp.route('/<file_name>', methods=['DELETE'])
 def delete_file(file_name) -> dict: # Json dict, redirect
+    
+    file_path = os.path.join(current_app.config['UPLOADED_FILES'],file_name) 
 
-    if request.method == 'DELETE':
+    if request.method == 'DELETE' and os.path.exists(file_path):
         try:
             file_name = secure_filename(file_name)
-            os.remove(os.path.join(current_app.config['UPLOADED_FILES'],file_name))
+            if os.path.isfile(file_path):
+                os.remove(os.path.join(current_app.config['UPLOADED_FILES'],file_name))
+                return jsonify({'message':'¡File deleted successfully!'}),200
+
+            else:
+                shutil.rmtree(file_path, ignore_errors=True)
+                return jsonify({'message':'¡Directory deleted successfully!'}),200
+
 
         except FileNotFoundError:
-            return jsonify({'message':'¡File not found!'}),404
+            return jsonify({'message':f'¡File or directory not found!'}),404
                 
-        return jsonify({'message':'¡File deleted successfully!'}),200
-
     
-    return redirect('/')
+    return jsonify({'message':f'¡File or directory not found!'}),404
  
 @file_bp.route('/', methods=['GET'])
 @file_bp.route('/<path:url>', methods=['GET'])
@@ -58,10 +66,11 @@ def all_files(url='/') -> dict: # Json dict
     if secure_path(base_path,url):
         try:
             final_path = os.path.join(base_path, url.strip('/'))
-            all_files_and_directories['path']        = ('/api/'+url)
+            all_files_and_directories['path']        = ('/api'+url if url == '/' else '/api'+'/'+url)
             all_files_and_directories['files']       = [{'name':f,'type':get_filetype(final_path + '/' + f),'size':get_path_size(final_path + '/' + f)} for f in os.listdir(final_path) if os.path.isfile(os.path.join(final_path, f))] 
             all_files_and_directories['directories'] = sorted([{'isEmpty': have_files(final_path + '/' + d), 'name':d, 'size':get_path_size(final_path + '/' + d)} for d in os.listdir(final_path) if os.path.isdir(os.path.join(final_path, d))], key= lambda x: x['isEmpty'], reverse=True)
-            all_files_and_directories['actions']     = {'label':'Delete', 'method':'DELETE', 'url':'/api/'+url}
+            if url != '/': # Operations are not allowed in the root path '/'.
+                all_files_and_directories['actions']     = [{'label':'Delete', 'method':'DELETE', 'url':'/api/'+url}]
 
         except FileNotFoundError:
 
@@ -71,8 +80,6 @@ def all_files(url='/') -> dict: # Json dict
     else:
         return jsonify({'error': 'Path not allowed'}), 404
     
-     
-
     return jsonify(all_files_and_directories)
 
 def check_files_thread(app,sid):
