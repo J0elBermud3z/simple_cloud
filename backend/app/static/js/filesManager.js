@@ -25,7 +25,7 @@ function generateDirectoriesHTML(response,pathDirectory) {
         const haveDirectories = folder['isEmpty'];
         const sanitizedPath = removeSpaces(pathDirectory+'/'+folderName);
         htmlDirectories +=             `<div class="col text-center">
-        <img onclick=refreshFiles("${sanitizedPath}") src="/static/img/${ haveDirectories === true ? 'folder_with_files.png' : 'open-folder.png' }" alt="Logo" width="55" height="55"
+        <img onclick=refreshFiles("${sanitizedPath}") src="/static/img/${ haveDirectories === true ? 'open-folder.png' : 'folder_with_files.png' }" alt="Logo" width="55" height="55"
             style="margin-top: 10px;">
         <h5 class="text-dracula fs-6 mt-2">${folderName}</h5>
     </div>`;
