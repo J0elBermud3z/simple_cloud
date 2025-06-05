@@ -33,7 +33,7 @@ def get_total_files_and_directories(path) -> int:
 
 def have_files(path) -> bool:
 
-    return (True if len(os.listdir(path)) >= 1 else False) 
+    return (False if len(os.listdir(path)) >= 1 else True) 
 
 def get_filetype(file) -> str:
 
@@ -54,3 +54,5 @@ def get_path_size(path) -> int:
                 total_size += os.path.getsize(fp)
 
     return total_size
+
+
