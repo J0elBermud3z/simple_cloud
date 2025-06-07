@@ -56,3 +56,12 @@ def get_path_size(path) -> int:
     return total_size
 
 
+def delete_first_bar(path):
+
+    if path[0] == '/':
+        path = path.split('/')
+        path.pop(0)
+        path = '/'.join(path)
+        return path
+    else:
+        return False

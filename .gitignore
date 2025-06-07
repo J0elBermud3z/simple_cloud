@@ -7,3 +7,10 @@ backend/__pycache__/*
 *.py[cod]
 backend/app/testing/
 backend/app/uploaded_files/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.git
+*.db
