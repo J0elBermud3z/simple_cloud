@@ -16,7 +16,6 @@ file_bp = Blueprint('api', __name__, url_prefix='/api/')
 def upload_file(folder_path='') -> dict: # Json dict, redirect
     
     base_path = os.path.join(current_app.config['UPLOADED_FILES'],folder_path)
-
     if request.method == 'POST':
 
         if 'file' in request.files:
@@ -88,7 +87,8 @@ def all_files(url='/') -> dict: # Json dict
     all_files_and_directories = {}
     base_path = current_app.config['UPLOADED_FILES'] 
     debug_message(f" /api/ : Arg path value '{url}'",current_app.config['DEBUG_MODE'])
-    
+    print('ruta',base_path,' ',url)
+
     url = format_directory(url)
     if secure_path(base_path,url):
         try:
