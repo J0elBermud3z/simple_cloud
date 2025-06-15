@@ -86,4 +86,24 @@ body{
     filter: opacity(100%);
 
 }
-  
+
+.hover-group {
+  display: inline-block;
+  transition: all  ease;
+  cursor: pointer;
+}
+
+.hover-group img,
+.hover-group .text-dracula {
+  transition: filter 0.1s ease, opacity 0.1s ease, transform 0.1s ease;
+  filter: blur(0.5px);
+  opacity: 0.9;
+}
+
+.hover-group:hover img,
+.hover-group:hover .text-dracula {
+  filter: none;
+  opacity: 1;
+  transform: scale(1.05);
+
+}

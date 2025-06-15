@@ -25,9 +25,11 @@ function generateDirectoriesHTML(response,pathDirectory) {
         const haveDirectories = folder['isEmpty'];
         const sanitizedPath = removeSpaces(pathDirectory+'/'+folderName);
         htmlDirectories +=             `<div class="col text-center">
+        <div class="hover-group">
         <img onclick=refreshFiles("${sanitizedPath}") src="/static/img/${ haveDirectories === true ? 'open-folder.png' : 'folder_with_files.png' }" alt="Logo" width="55" height="55"
             style="margin-top: 10px;">
         <h5 class="text-dracula fs-6 mt-2">${folderName}</h5>
+        </div>
     </div>`;
         
     };
@@ -41,9 +43,11 @@ function generateFilesHTML(response) {
     let files       = response['files'];
     for (let indexDirectory = 0; indexDirectory < files.length; indexDirectory++) {
         htmlDirectories +=             `<div class="col text-center">
+        <div class="hover-group">
         <img src="${getFileIcon(files[indexDirectory]['name'].split('.').at(-1))}" alt="Logo" width="55" height="55"
             style="margin-top: 10px;">
         <h5 class="text-dracula fs-6 mt-2">${files[indexDirectory]['name']}</h5>
+        </div>
     </div>`;
         
     };

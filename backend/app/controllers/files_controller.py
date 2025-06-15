@@ -57,9 +57,9 @@ def rename_file(old_name, new_name, folder_path=''):
         return jsonify({'message': '¡File or directory not found!'}), 404
 
 
-@file_bp.route('/<file_name>', methods=['DELETE'])
+@file_bp.route('/<path:file_name>', methods=['DELETE'])
 def delete_file(file_name) -> dict: # Json dict, redirect
-    
+
     file_path = os.path.join(current_app.config['UPLOADED_FILES'],file_name) 
 
     if request.method == 'DELETE' and os.path.exists(file_path):
@@ -136,7 +136,6 @@ def check_files_thread(app,sid):
     with app.app_context():
         base_path = current_app.config['UPLOADED_FILES']         
         aux_new_files = get_total_files_and_directories(base_path)
-        
         while True:
             time.sleep(1)
             new_files = get_total_files_and_directories(base_path)
