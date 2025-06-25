@@ -32,7 +32,6 @@ def get_total_files_and_directories(path) -> int:
     return total
 
 def have_files(path) -> bool:
-
     return (False if len(os.listdir(path)) >= 1 else True) 
 
 def get_filetype(file) -> str:
@@ -55,9 +54,11 @@ def get_path_size(path) -> int:
 
     return total_size
 
+def format_root(url):
+    return url if url == '/' else '/'+url
 
 def delete_first_bar(path):
-
+    # '/path/'[0] = / 
     if path[0] == '/':
         path = path.split('/')
         path.pop(0)
